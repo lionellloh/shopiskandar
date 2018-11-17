@@ -1,9 +1,11 @@
 from flask import Flask, jsonify, request, abort
+from flask_cors import CORS
 import requests
 import json
 import os
 
 app = Flask(__name__)
+CORS(app)
 
 # Constant variables
 ACCESS_KEY = os.environ['ACCESS_KEY']
@@ -25,8 +27,8 @@ def find_similar():
         abort(303)
 
     # Arguments from frontend
-    image_string = request.json["image"]
-    filter = request.json["filter"]
+#    image_string = request.json["image"]
+#    filter = request.json["filter"]
 
     filename="bryan.jpeg"
     response_fashion = post_fashion(filename)
@@ -53,6 +55,12 @@ def post_face(filename):
     content = json.loads(r)
     return content
 
+@app.after_request
+def after_request(response):
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+  return response
 
 if __name__ == '__main__':
     app.run("0.0.0.0", debug = True)
