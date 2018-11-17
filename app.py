@@ -3,7 +3,14 @@ from flask_cors import CORS
 import requests
 import json
 import os
+import time
+import cv2
+import base64
+import pickle
 
+print("Loading Dataframe from pickle object")
+
+print("")
 app = Flask(__name__)
 CORS(app)
 
@@ -23,12 +30,12 @@ def base64_decode_image(data):
         print(e)
         image_data = data
     try:
-        image_raw = base64.decodestring(image_data)
+        image_raw = base64.decodebytes(image_data)
     except Exception as e:
         missing_padding = len(image_data) % 4
         if missing_padding != 0:
             image_data += b'=' * (4 - missing_padding)
-        image_raw = base64.decodestring(image_data)
+        image_raw = base64.decodebytes(image_data)
     return image_raw
 
 @app.route('/', methods= ['get'])
@@ -52,31 +59,17 @@ def hello():
 def find_similar():
     # If nothing is sent
     if not request.json:
-        abort(303)
+        abort(404)
 
     # Arguments from frontend
-#    image_string = request.json["image"]
-#    filter = request.json["filter"]
-
-    filename = str(time.time)+".jpg"
-
-    image_raw = base64_decode_image(image_string)
-    image = imread(image_raw)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    cv2.imwrite(filename, image)
+    image_string = request.json["image"]
+    filter = request.json[""]
+    filename = convert_b64_to_file(image_string)
 
     response_fashion = post_fashion(filename)
     response_face = post_face(filename)
 
-    output = {"url_list": ['https://shop.iskandar.ml/IMAGES/fashion_20.jpg',
-                           'https://shop.iskandar.ml/IMAGES/fashion_4.jpg',
-                           'https://shop.iskandar.ml/IMAGES/fashion_6.jpg',
-                           'https://shop.iskandar.ml/IMAGES/fashion_7.jpg',
-                           'https://shop.iskandar.ml/IMAGES/fashion_18.jpg',
-                           'https://shop.iskandar.ml/IMAGES/fashion_17.jpg',
-                           'https://shop.iskandar.ml/IMAGES/fashion_15.jpg',
-                           'https://shop.iskandar.ml/IMAGES/fashion_1.jpg',
-                           'https://shop.iskandar.ml/IMAGES/fashion_13.jpg']}
+
 
 
     return jsonify(output)
@@ -94,6 +87,17 @@ def post_fashion(filename):
     content = json.loads(r)
     return content
 
+# Parse python dictionary to return a list of colours and a list of styles
+def parse_fashion(fashion_result):
+    try:
+        colours = [small_dict["colorGeneralCategory"] for small_dict in fashion_result['person']["colors"]]
+        styles = [small_dict["styleName"] for small_dict in fashion_result['person']["styles"]]
+
+    except:
+        return None, None
+
+    return colours, styles
+
 # Post to recognitive's face api
 def post_face(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
@@ -104,6 +108,29 @@ def post_face(filename):
     print(r)
     content = json.loads(r)
     return content
+
+
+# Parse python dictionary from the face api to return age and gender
+def parse_face(face_result):
+    try:
+        gender = face_result["faces"][0]["gender"]["value"]
+        age = face_result["faces"][0]["age"]
+
+    except:
+        return None None
+
+    return age, gender
+
+
+# Given a base64 string, return a file name
+def convert_b64_to_file(image_string):
+    filename = str(time.time) + ".jpg"
+    image_raw = base64_decode_image(image_string)
+    image = imread(image_raw)
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    cv2.imwrite(filename, image)
+
+    return filename
 
 # The closer the age inferred, the stronger the recommendation
 def compute_age_score(age, age_query):
