@@ -61,6 +61,8 @@ def find_similar():
     return jsonify(output)
 
     # return jsonify(result = request.json)
+
+# Post to recognitive's fashion api
 def post_fashion(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
     filename = {'filename': open("test_images/{}".format(filename), 'rb')}
@@ -70,6 +72,7 @@ def post_fashion(filename):
     content = json.loads(r)
     return content
 
+# Post to recognitive's face api
 def post_face(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
     filename = {'filename': open("test_images/{}".format(filename), 'rb')}
@@ -78,6 +81,23 @@ def post_face(filename):
     print(r)
     content = json.loads(r)
     return content
+
+# The closer the age inferred, the stronger the recommendation
+def compute_age_score(age, age_query):
+    if age_query == "Unknown" or age == "Unknown":
+        return 0
+    return 1- abs((int(age_query) - int(age)) * 0.1)
+
+# If same gender add 2 to the score, if different add -2. To ensure same gender recommendations
+def compute_gender_score(gender, gender_query):
+    if gender == "Unknown" or "gender_query" == "Unknown":
+        return 0
+
+    if gender == gender_query:
+        return 2
+
+    else:
+        return -2
 
 @app.after_request
 def after_request(response):
