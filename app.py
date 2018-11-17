@@ -14,12 +14,15 @@ FACE_API = "https://face.recoqnitics.com/analyze"
 
 data = {'access_key': ACCESS_KEY,'secret_key': SECRET_KEY}
 
+@app.route('/', methods= ['get'])
+def hello():
+    return "Welcome to Shop Iskandar mutharfucker"
 
 @app.route('/find_similar', methods= ['post'])
 def find_similar():
     # If nothing is sent
     if not request.json:
-        abort(400)
+        abort(303)
 
     # Arguments from frontend
     image_string = request.json["image"]
@@ -29,8 +32,9 @@ def find_similar():
     response_fashion = post_fashion(filename)
     response_face = post_face(filename)
 
-    return jsonify(response_face)
+    # return jsonify(response_face)
 
+    return jsonify(result = request.json)
 def post_fashion(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
     filename = {'filename': open("test_images/{}".format(filename), 'rb')}
@@ -47,4 +51,5 @@ def post_face(filename):
 
 
 if __name__ == '__main__':
-    app.run(debug = True)
+    # app.run("0.0.0.0", debug = True)
+    app.run("0.0.0.0")
