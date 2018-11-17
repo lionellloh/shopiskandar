@@ -26,14 +26,22 @@ def find_similar():
     filter = request.json["filter"]
 
     filename="bryan.jpeg"
-    response = post_data(filename)
+    response_fashion = post_fashion(filename)
+    response_face = post_face(filename)
 
-    return jsonify(response)
+    return jsonify(response_face)
 
-def post_data(filename):
+def post_fashion(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
     filename = {'filename': open("test_images/{}".format(filename), 'rb')}
     r = requests.post(FASHION_API, files=filename, data=data)
+    content = json.loads(r.content)
+    return content
+
+def post_face(filename):
+    # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
+    filename = {'filename': open("test_images/{}".format(filename), 'rb')}
+    r = requests.post(FACE_API, files=filename, data=data)
     content = json.loads(r.content)
     return content
 
