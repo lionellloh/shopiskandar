@@ -44,7 +44,6 @@ def base64_decode_image(data):
     return image_raw
 
 
-
 # Given a base64 string, return a file name
 def convert_b64_to_file(image_string):
     filename = "test_images/" + str(time.time()) + ".jpg"
@@ -83,6 +82,11 @@ def find_similar():
     image_string = request.json["image"]
     filter = request.json["filter"]
 
+
+    print("filter is {}".format(filter))
+    print("image is {}".format(image_string))
+
+
     filename = convert_b64_to_file(image_string)
 
     response_fashion = post_fashion(filename)
@@ -91,6 +95,7 @@ def find_similar():
     colours, styles = parse_fashion(response_fashion)
     age, gender = parse_face(response_face)
     matches = parse_dataframe(df, filter, age, gender, colours, styles)
+
     return jsonify({"response": matches})
 
 
@@ -102,7 +107,6 @@ def post_fashion(filename):
     filename = {'filename': open(filename, 'rb')}
     r = requests.post(FASHION_API, files=filename, data=data)
     r = str(r.content)[2:-3]
-    print(r)
     content = json.loads(r)
     return content
 
@@ -124,7 +128,7 @@ def post_face(filename):
     filename = {'filename': open(filename, 'rb')}
     r = requests.post(FACE_API, files=filename, data=data)
     r = str(r.content)[2:-3]
-    print(r)
+
     content = json.loads(r)
     return content
 
@@ -145,7 +149,12 @@ def parse_face(face_result):
 def compute_age_score(age, age_query):
     if age_query == "Unknown" or age == "Unknown":
         return 0
-    return 1- abs((int(age_query) - int(age)) * 0.1)
+
+    try:
+        return 1- abs((int(age_query) - int(age)) * 0.1)
+
+    except:
+        return 0
 
 # If same gender add 2 to the score, if different add -2. To ensure same gender recommendations
 def compute_gender_score(gender, gender_query):
@@ -158,9 +167,17 @@ def compute_gender_score(gender, gender_query):
     else:
         return -2
 
-def compute_match_score(library, article):
+def compute_match_score(library, article, filter):
+
+    constant = 0.6
+
+    if filter == "Colour":
+        constant = 1
+
     print(library)
-    return len(set(library) & set(article))
+    print(article)
+    print(set(library) & set(article))
+    return len(set(library) & set(article)) * 1.5
 
 
 def parse_dataframe(df_orig, filter, age, gender, colours, styles):
@@ -169,10 +186,10 @@ def parse_dataframe(df_orig, filter, age, gender, colours, styles):
     df["gender_score"] = df["Gender"].apply(lambda x: compute_gender_score(x, gender))
 
     if filter == 'Colour':
-        df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), colours))
+        df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), colours, filter))
 
     elif filter == 'Style':
-        df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), styles))
+        df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), styles, filter))
 
     df["total_score"] = df["age_score"] + df["match_score"] + df["gender_score"]
 
