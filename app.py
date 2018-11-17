@@ -16,6 +16,21 @@ FACE_API = "https://face.recoqnitics.com/analyze"
 
 data = {'access_key': ACCESS_KEY,'secret_key': SECRET_KEY}
 
+def base64_decode_image(data):
+    try:
+        image_data = bytes(data, 'utf-8')
+    except Exception as e:
+        print(e)
+        image_data = data
+    try:
+        image_raw = base64.decodestring(image_data)
+    except Exception as e:
+        missing_padding = len(image_data) % 4
+        if missing_padding != 0:
+            image_data += b'=' * (4 - missing_padding)
+        image_raw = base64.decodestring(image_data)
+    return image_raw
+
 @app.route('/', methods= ['get'])
 def hello():
     output = {"url_list": ['https://shop.iskandar.ml/IMAGES/fashion_20.jpg',
@@ -43,7 +58,13 @@ def find_similar():
 #    image_string = request.json["image"]
 #    filter = request.json["filter"]
 
-    filename="bryan.jpeg"
+    filename = str(time.time)+".jpg"
+
+    image_raw = base64_decode_image(image_string)
+    image = imread(image_raw)
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    cv2.imwrite(filename, image)
+
     response_fashion = post_fashion(filename)
     response_face = post_face(filename)
 
@@ -65,7 +86,8 @@ def find_similar():
 # Post to recognitive's fashion api
 def post_fashion(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
-    filename = {'filename': open("test_images/{}".format(filename), 'rb')}
+    #filename = {'filename': open("test_images/{}".format(filename), 'rb')}
+    filename = {'filename': open(filename, 'rb')}
     r = requests.post(FASHION_API, files=filename, data=data)
     r = str(r.content)[2:-3]
     print(r)
@@ -75,7 +97,8 @@ def post_fashion(filename):
 # Post to recognitive's face api
 def post_face(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
-    filename = {'filename': open("test_images/{}".format(filename), 'rb')}
+    #filename = {'filename': open("test_images/{}".format(filename), 'rb')}
+    filename = {'filename': open(filename, 'rb')}
     r = requests.post(FACE_API, files=filename, data=data)
     r = str(r.content)[2:-3]
     print(r)
