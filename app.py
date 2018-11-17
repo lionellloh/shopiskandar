@@ -8,12 +8,12 @@ import cv2
 import base64
 import pickle
 import copy
+from skimage.io import imread
+
 
 print("Loading Dataframe from pickle object")
 df = pickle.load(open("dataframe.pickle","rb"))
 print("Dataframe loaded")
-
-print(df.head())
 
 app = Flask(__name__)
 CORS(app)
@@ -40,7 +40,21 @@ def base64_decode_image(data):
         if missing_padding != 0:
             image_data += b'=' * (4 - missing_padding)
         image_raw = base64.decodebytes(image_data)
+
     return image_raw
+
+
+
+# Given a base64 string, return a file name
+def convert_b64_to_file(image_string):
+    filename = "test_images/" + str(time.time()) + ".jpg"
+    image_raw = base64_decode_image(image_string)
+
+    with open(filename, "wb") as fh:
+        fh.write(image_raw)
+
+    return filename
+
 
 @app.route('/', methods= ['get'])
 def hello():
@@ -68,6 +82,7 @@ def find_similar():
     # Arguments from frontend
     image_string = request.json["image"]
     filter = request.json["filter"]
+
     filename = convert_b64_to_file(image_string)
 
     response_fashion = post_fashion(filename)
@@ -75,18 +90,10 @@ def find_similar():
 
     colours, styles = parse_fashion(response_fashion)
     age, gender = parse_face(response_face)
+    matches = parse_dataframe(df, filter, age, gender, colours, styles)
+    return jsonify({"response": matches})
 
-    return parse_dataframe(df, filter, age, gender, colours, styles)
 
-# Given a base64 string, return a file name
-def convert_b64_to_file(image_string):
-    filename = str(time.time) + ".jpg"
-    image_raw = base64_decode_image(image_string)
-    image = imread(image_raw)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    cv2.imwrite(filename, image)
-
-    return filename
 
 # Post to recognitive's fashion api
 def post_fashion(filename):
@@ -160,7 +167,13 @@ def parse_dataframe(df_orig, filter, age, gender, colours, styles):
     df = copy.deepcopy(df_orig)
     df["age_score"] = df["Age"].apply(lambda x: compute_age_score(x, int(age)))
     df["gender_score"] = df["Gender"].apply(lambda x: compute_gender_score(x, gender))
-    df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), ['Black', 'Black', 'Red']))
+
+    if filter == 'Colour':
+        df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), colours))
+
+    elif filter == 'Style':
+        df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), styles))
+
     df["total_score"] = df["age_score"] + df["match_score"] + df["gender_score"]
 
     top_nine = df.sort_values(by=["total_score"], ascending=False)[:9]
