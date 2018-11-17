@@ -39,17 +39,21 @@ def post_fashion(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
     filename = {'filename': open("test_images/{}".format(filename), 'rb')}
     r = requests.post(FASHION_API, files=filename, data=data)
-    content = json.loads(r.content)
+    r = str(r.content)[2:-3]
+    print(r)
+    content = json.loads(r)
     return content
 
 def post_face(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
     filename = {'filename': open("test_images/{}".format(filename), 'rb')}
     r = requests.post(FACE_API, files=filename, data=data)
-    content = json.loads(r.content)
+    r = str(r.content)[2:-3]
+    print(r)
+    content = json.loads(r)
     return content
 
 
 if __name__ == '__main__':
-    # app.run("0.0.0.0", debug = True)
-    app.run("0.0.0.0")
+    app.run("0.0.0.0", debug = True)
+    #app.run("0.0.0.0")
