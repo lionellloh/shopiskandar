@@ -18,7 +18,17 @@ data = {'access_key': ACCESS_KEY,'secret_key': SECRET_KEY}
 
 @app.route('/', methods= ['get'])
 def hello():
-    return "Welcome to Shop Iskandar mutharfucker"
+    output = {"url_list": ['https://shop.iskandar.ml/IMAGES/fashion_20.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_4.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_6.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_7.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_18.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_17.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_15.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_1.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_13.jpg']}
+
+    return jsonify(output)
 
 @app.route('/find_similar', methods= ['post'])
 def find_similar():
@@ -34,7 +44,18 @@ def find_similar():
     response_fashion = post_fashion(filename)
     response_face = post_face(filename)
 
-    # return jsonify(response_face)
+    output = {"url_list": ['https://shop.iskandar.ml/IMAGES/fashion_20.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_4.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_6.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_7.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_18.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_17.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_15.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_1.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_13.jpg']}
+
+
+    return jsonify(output)
 
     return jsonify(result = request.json)
 def post_fashion(filename):
