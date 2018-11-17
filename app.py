@@ -7,10 +7,14 @@ import time
 import cv2
 import base64
 import pickle
+import copy
 
 print("Loading Dataframe from pickle object")
+df = pickle.load(open("dataframe.pickle","rb"))
+print("Dataframe loaded")
 
-print("")
+print(df.head())
+
 app = Flask(__name__)
 CORS(app)
 
@@ -63,7 +67,7 @@ def find_similar():
 
     # Arguments from frontend
     image_string = request.json["image"]
-    filter = request.json[""]
+    filter = request.json["filter"]
     filename = convert_b64_to_file(image_string)
 
     response_fashion = post_fashion(filename)
@@ -72,12 +76,7 @@ def find_similar():
     colours, styles = parse_fashion(response_fashion)
     age, gender = parse_face(response_face)
 
-
-
-    return jsonify(output)
-
-    # return jsonify(result = request.json)
-
+    return parse_dataframe(df, filter, age, gender, colours, styles)
 
 # Given a base64 string, return a file name
 def convert_b64_to_file(image_string):
@@ -130,7 +129,7 @@ def parse_face(face_result):
         age = face_result["faces"][0]["age"]
 
     except:
-        return None None
+        return None, None
 
     return age, gender
 
@@ -152,9 +151,22 @@ def compute_gender_score(gender, gender_query):
     else:
         return -2
 
-def parse_dataframe(df, age, gender, colours, styles):
+def compute_match_score(library, article):
+    print(library)
+    return len(set(library) & set(article))
 
-    pass
+
+def parse_dataframe(df_orig, filter, age, gender, colours, styles):
+    df = copy.deepcopy(df_orig)
+    df["age_score"] = df["Age"].apply(lambda x: compute_age_score(x, int(age)))
+    df["gender_score"] = df["Gender"].apply(lambda x: compute_gender_score(x, gender))
+    df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), ['Black', 'Black', 'Red']))
+    df["total_score"] = df["age_score"] + df["match_score"] + df["gender_score"]
+
+    top_nine = df.sort_values(by=["total_score"], ascending=False)[:9]
+
+    return top_nine.to_dict(orient="records")
+
 
 @app.after_request
 def after_request(response):
