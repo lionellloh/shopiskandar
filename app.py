@@ -69,12 +69,25 @@ def find_similar():
     response_fashion = post_fashion(filename)
     response_face = post_face(filename)
 
+    colours, styles = parse_fashion(response_fashion)
+    age, gender = parse_face(response_face)
 
 
 
     return jsonify(output)
 
     # return jsonify(result = request.json)
+
+
+# Given a base64 string, return a file name
+def convert_b64_to_file(image_string):
+    filename = str(time.time) + ".jpg"
+    image_raw = base64_decode_image(image_string)
+    image = imread(image_raw)
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    cv2.imwrite(filename, image)
+
+    return filename
 
 # Post to recognitive's fashion api
 def post_fashion(filename):
@@ -122,16 +135,6 @@ def parse_face(face_result):
     return age, gender
 
 
-# Given a base64 string, return a file name
-def convert_b64_to_file(image_string):
-    filename = str(time.time) + ".jpg"
-    image_raw = base64_decode_image(image_string)
-    image = imread(image_raw)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    cv2.imwrite(filename, image)
-
-    return filename
-
 # The closer the age inferred, the stronger the recommendation
 def compute_age_score(age, age_query):
     if age_query == "Unknown" or age == "Unknown":
@@ -148,6 +151,10 @@ def compute_gender_score(gender, gender_query):
 
     else:
         return -2
+
+def parse_dataframe(df, age, gender, colours, styles):
+
+    pass
 
 @app.after_request
 def after_request(response):
