@@ -18,9 +18,20 @@ data = {'access_key': ACCESS_KEY,'secret_key': SECRET_KEY}
 
 @app.route('/', methods= ['get'])
 def hello():
+    output = {"url_list": ['https://shop.iskandar.ml/IMAGES/fashion_20.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_4.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_6.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_7.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_18.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_17.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_15.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_1.jpg',
+                           'https://shop.iskandar.ml/IMAGES/fashion_13.jpg']}
 
+    return jsonify(output)
 
-    return "Welcome to the best hackathon in the world!!"
+    # return "Welcome to the best hackathon in the world!!"
+
 
 @app.route('/find_similar', methods= ['post'])
 def find_similar():
@@ -49,7 +60,7 @@ def find_similar():
 
     return jsonify(output)
 
-    return jsonify(result = request.json)
+    # return jsonify(result = request.json)
 def post_fashion(filename):
     # filename = {'filename': open("test_images/bryan.jpeg", 'rb')}
     filename = {'filename': open("test_images/{}".format(filename), 'rb')}
