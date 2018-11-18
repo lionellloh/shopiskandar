@@ -13,6 +13,7 @@ from skimage.io import imread
 
 print("Loading Dataframe from pickle object")
 df = pickle.load(open("dataframe.pickle","rb"))
+print(list(df.columns.values))
 print("Dataframe loaded")
 
 app = Flask(__name__)
@@ -47,6 +48,7 @@ def base64_decode_image(data):
 # Given a base64 string, return a file name
 def convert_b64_to_file(image_string):
     filename = "test_images/" + str(time.time()) + ".jpg"
+    image_string = bytes(image_string.replace("data:image/jpeg;base64,",""), 'utf-8')
     image_raw = base64_decode_image(image_string)
 
     with open(filename, "wb") as fh:
@@ -79,6 +81,7 @@ def find_similar():
         abort(404)
 
     # Arguments from frontend
+    print(request.json)
     image_string = request.json["image"]
     filter = request.json["filter"]
 
@@ -185,11 +188,11 @@ def parse_dataframe(df_orig, filter, age, gender, colours, styles):
     df["age_score"] = df["Age"].apply(lambda x: compute_age_score(x, int(age)))
     df["gender_score"] = df["Gender"].apply(lambda x: compute_gender_score(x, gender))
 
-    if filter == 'Colour':
-        df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), colours, filter))
+    if filter == 'color':
+        df["match_score"] = df["Colour"].apply(lambda x: compute_match_score((x), colours))
 
-    elif filter == 'Style':
-        df["match_score"] = df[filter].apply(lambda x: compute_match_score((x), styles, filter))
+    elif filter == 'style':
+        df["match_score"] = df["Style"].apply(lambda x: compute_match_score((x), styles))
 
     df["total_score"] = df["age_score"] + df["match_score"] + df["gender_score"]
 
