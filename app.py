@@ -185,16 +185,19 @@ def compute_match_score(library, article, filter):
 
 def parse_dataframe(df_orig, filter, age, gender, colours, styles):
     df = copy.deepcopy(df_orig)
-    df["age_score"] = df["Age"].apply(lambda x: compute_age_score(x, int(age)))
+    #df["age_score"] = df["Age"].apply(lambda x: compute_age_score(x, int(age)))
     df["gender_score"] = df["Gender"].apply(lambda x: compute_gender_score(x, gender))
 
     if filter == 'color':
-        df["match_score"] = df["Colour"].apply(lambda x: compute_match_score((x), colours))
+        filter = "Colour"
+        df["match_score"] = df["Colour"].apply(lambda x: compute_match_score((x), colours, filter))
 
     elif filter == 'style':
-        df["match_score"] = df["Style"].apply(lambda x: compute_match_score((x), styles))
+        filter = "Style"
+        df["match_score"] = df["Style"].apply(lambda x: compute_match_score((x), styles, filter))
 
-    df["total_score"] = df["age_score"] + df["match_score"] + df["gender_score"]
+    #df["total_score"] = df["age_score"] + df["match_score"] + df["gender_score"]
+    df["total_score"] = df["match_score"] + df["gender_score"]
 
     top_nine = df.sort_values(by=["total_score"], ascending=False)[:9]
 
